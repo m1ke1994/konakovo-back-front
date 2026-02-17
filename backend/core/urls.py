@@ -8,12 +8,14 @@ from .views import (
     NewsDetailAPIView,
     NewsListAPIView,
     ReviewViewSet,
+    ScheduleViewSet,
     ServiceViewSet,
 )
 
 router = DefaultRouter()
 router.register("reviews", ReviewViewSet, basename="reviews")
 router.register("services", ServiceViewSet, basename="services")
+router.register("schedule", ScheduleViewSet, basename="schedule")
 
 urlpatterns = [
     path("hero/", HeroBlockAPIView.as_view(), name="hero-api"),

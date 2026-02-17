@@ -2,7 +2,7 @@ from rest_framework import generics, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Article, HeroBlock, News, Review, Service
+from .models import Article, HeroBlock, News, Review, ScheduleDay, Service
 from .serializers import (
     ArticleListSerializer,
     ArticleSerializer,
@@ -10,6 +10,7 @@ from .serializers import (
     NewsListSerializer,
     NewsSerializer,
     ReviewSerializer,
+    ScheduleDaySerializer,
     ServiceSerializer,
 )
 
@@ -57,3 +58,47 @@ class NewsDetailAPIView(generics.RetrieveAPIView):
 class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Service.objects.filter(parent__isnull=True).prefetch_related("children", "tariffs")
     serializer_class = ServiceSerializer
+
+
+class ScheduleViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ScheduleDay.objects.filter(is_published=True).prefetch_related("events").order_by("date")
+    serializer_class = ScheduleDaySerializer
+
+    def list(self, request, *args, **kwargs):
+        days = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(days, many=True)
+        day_items = serializer.data
+
+        month_labels = [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь",
+        ]
+
+        grouped = {}
+        ordered_keys = []
+
+        for day in day_items:
+            date_raw = day.get("date", "")
+            year, month, _ = map(int, date_raw.split("-"))
+            key = (year, month)
+            if key not in grouped:
+                ordered_keys.append(key)
+                grouped[key] = {
+                    "month": f"{month_labels[month - 1]} {year}",
+                    "year": year,
+                    "month_number": month,
+                    "days": [],
+                }
+            grouped[key]["days"].append(day)
+
+        return Response([grouped[key] for key in ordered_keys])

@@ -4,7 +4,16 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Article, HeroBlock, News, Review, Service, Tariff
+from .models import (
+    Article,
+    HeroBlock,
+    News,
+    Review,
+    ScheduleDay,
+    ScheduleEvent,
+    Service,
+    Tariff,
+)
 
 
 @admin.register(HeroBlock)
@@ -132,3 +141,36 @@ class ServiceAdmin(admin.ModelAdmin):
     search_fields = ("title", "slug")
     prepopulated_fields = {"slug": ("title",)}
     inlines = (TariffInline,)
+
+
+class ScheduleEventInline(admin.TabularInline):
+    model = ScheduleEvent
+    extra = 1
+    fields = (
+        "time_start",
+        "time_end",
+        "title",
+        "category",
+        "service",
+        "price",
+        "color",
+        "order",
+    )
+    autocomplete_fields = ("service",)
+
+
+@admin.register(ScheduleDay)
+class ScheduleDayAdmin(admin.ModelAdmin):
+    list_display = ("date", "is_published")
+    list_filter = ("is_published",)
+    date_hierarchy = "date"
+    search_fields = ("date",)
+    inlines = (ScheduleEventInline,)
+
+
+@admin.register(ScheduleEvent)
+class ScheduleEventAdmin(admin.ModelAdmin):
+    list_display = ("day", "time_start", "time_end", "title", "category", "service", "price", "order")
+    list_filter = ("category", "day__is_published")
+    search_fields = ("title", "category", "description")
+    autocomplete_fields = ("day", "service")

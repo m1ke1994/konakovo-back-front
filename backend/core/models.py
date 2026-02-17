@@ -161,3 +161,42 @@ class Tariff(models.Model):
 
     def __str__(self):
         return f"{self.service.title}: {self.title}"
+
+
+class ScheduleDay(models.Model):
+    date = models.DateField(unique=True)
+    is_published = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["date"]
+
+    def __str__(self):
+        return self.date.isoformat()
+
+
+class ScheduleEvent(models.Model):
+    day = models.ForeignKey(
+        ScheduleDay,
+        related_name="events",
+        on_delete=models.CASCADE,
+    )
+    service = models.ForeignKey(
+        Service,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    title = models.CharField(max_length=255)
+    category = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    time_start = models.TimeField()
+    time_end = models.TimeField()
+    price = models.IntegerField(null=True, blank=True)
+    color = models.CharField(max_length=20, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["time_start", "order"]
+
+    def __str__(self):
+        return f"{self.day.date} {self.title}"

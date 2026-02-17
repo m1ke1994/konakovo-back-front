@@ -1,9 +1,12 @@
-<template>
+﻿<template>
   <div class="month-schedule">
     <div class="month-schedule__top">
-      <h2>Расписание программ</h2>
 
-      <div class="month-schedule__months" role="tablist" aria-label="Выбор месяца">
+      <div
+        class="month-schedule__months"
+        role="tablist"
+        aria-label="Выбор месяца"
+      >
         <button
           v-for="month in groupedEvents"
           :key="month.monthKey"
@@ -22,7 +25,7 @@
         v-if="activeMonthDays.length"
         ref="daysStripRef"
         class="month-schedule__days"
-        aria-label="Даты выбранного месяца"
+        aria-label="Расписание по дням"
       >
         <button
           v-for="day in activeMonthDays"
@@ -36,21 +39,45 @@
           :ref="(el) => setDayButtonRef(day.dateKey, el)"
           @click="focusDay(day.dateKey)"
         >
-          <span class="month-schedule__day-label">{{ day.ribbonWeekday }}</span>
-          <span class="month-schedule__day-number">{{ day.ribbonDay }}</span>
+          <span class="month-schedule__day-label">
+            {{ day.ribbonWeekday }}
+          </span>
+          <span class="month-schedule__day-number">
+            {{ day.ribbonDay }}
+          </span>
         </button>
       </div>
 
       <div v-if="activeMonthGroup" class="month-schedule__meta">
-        <span>{{ activeMonthGroup.days.length }} {{ pluralizeDays(activeMonthGroup.days.length) }}</span>
+        <span>
+          {{ activeMonthGroup.days.length }}
+          {{ pluralizeDays(activeMonthGroup.days.length) }}
+        </span>
         <span>•</span>
-        <span>{{ activeMonthEventsCount }} {{ pluralizeEvents(activeMonthEventsCount) }}</span>
+        <span>
+          {{ activeMonthEventsCount }}
+          {{ pluralizeEvents(activeMonthEventsCount) }}
+        </span>
       </div>
     </div>
 
     <div class="month-schedule__list">
-      <section v-if="activeMonthGroup" :key="activeMonthGroup.monthKey" class="month-schedule__month">
-        <h3 class="month-schedule__month-title">{{ activeMonthGroup.monthLabel }}</h3>
+      <div v-if="loading" class="month-schedule__empty">
+        Загрузка расписания...
+      </div>
+
+      <div v-else-if="error" class="month-schedule__empty">
+        {{ error }}
+      </div>
+
+      <section
+        v-else-if="activeMonthGroup"
+        :key="activeMonthGroup.monthKey"
+        class="month-schedule__month"
+      >
+        <h3 class="month-schedule__month-title">
+          {{ activeMonthGroup.monthLabel }}
+        </h3>
 
         <section
           v-for="dayGroup in visibleMonthDays"
@@ -66,14 +93,17 @@
           >
             <span class="month-schedule__date-main">
               <span>{{ dayGroup.dateLabel }}</span>
-              <span class="month-schedule__date-count">{{ dayGroup.events.length }}</span>
+              <span class="month-schedule__date-count">
+                {{ dayGroup.events.length }}
+              </span>
             </span>
+
             <span
               class="month-schedule__date-chevron"
               :class="{ 'month-schedule__date-chevron--open': isDayOpen(dayGroup.dateKey) }"
               aria-hidden="true"
             >
-              ▾
+              ▼
             </span>
           </button>
 
@@ -88,7 +118,10 @@
                 class="program-card"
                 @click="openModal(event)"
               >
-                <div class="program-card__bar" :style="{ background: event.color }"></div>
+                <div
+                  class="program-card__bar"
+                  :style="{ background: event.color }"
+                ></div>
 
                 <div class="program-card__content">
                   <div class="program-card__time">
@@ -127,9 +160,18 @@
       </div>
     </div>
 
-    <div v-if="activeEvent" class="program-modal" @click.self="activeEvent = null">
+    <div
+      v-if="activeEvent"
+      class="program-modal"
+      @click.self="activeEvent = null"
+    >
       <div class="program-modal__card">
-        <button class="program-modal__close" @click="activeEvent = null">✕</button>
+        <button
+          class="program-modal__close"
+          @click="activeEvent = null"
+        >
+          ✕
+        </button>
 
         <h3>{{ activeEvent.title }}</h3>
 
@@ -137,7 +179,11 @@
           {{ activeEvent.start }} — {{ activeEvent.end }}
         </p>
 
-        <img :src="activeEvent.image" class="program-modal__image" />
+        <img
+          v-if="activeEvent.image"
+          :src="activeEvent.image"
+          class="program-modal__image"
+        />
 
         <p class="program-modal__desc">
           {{ activeEvent.description }}
@@ -147,8 +193,10 @@
   </div>
 </template>
 
+
 <script setup>
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { getSchedule } from "../api/schedule";
 
 const pad = (value) => String(value).padStart(2, "0");
 
@@ -166,162 +214,6 @@ const today = new Date();
 const todayDateKey = toDateKey(today);
 const INITIAL_VISIBLE_DAYS = 5;
 const VISIBLE_DAYS_STEP = 5;
-const MONTHS_AHEAD = 8;
-const MIN_EVENTS_TARGET = 110;
-
-const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-const eventTemplates = [
-  {
-    title: "Чайная церемония",
-    category: "Авторская программа",
-    price: [2800, 4200],
-    image: "/2.jpeg",
-    description: "Камерный формат с практикой внимания и спокойным ритмом.",
-    color: "#E9B949",
-  },
-  {
-    title: "Экскурсия в Братство Лосей",
-    category: "Экскурсия",
-    price: [3200, 5400],
-    image: "/1.jpeg",
-    description: "Маршрут по природной зоне с проводником и остановками в ключевых точках.",
-    color: "#6BA368",
-  },
-  {
-    title: "Беговой клуб",
-    category: "Спорт",
-    price: [1200, 2600],
-    image: "/3.jpeg",
-    description: "Легкая тренировка с акцентом на технику, темп и восстановление.",
-    color: "#C88B3A",
-  },
-  {
-    title: "Мастер-класс по дыханию",
-    category: "Мастер-класс",
-    price: [1800, 3200],
-    image: "/4.jpeg",
-    description: "Практика для фокуса, снижения напряжения и восстановления энергии.",
-    color: "#7AA2F7",
-  },
-  {
-    title: "Волонтерская программа",
-    category: "Сообщество",
-    price: [900, 1900],
-    image: "/5.jpeg",
-    description: "Практические задачи в команде с поддержкой координатора.",
-    color: "#A68BFF",
-  },
-  {
-    title: "Вечерний маршрут у воды",
-    category: "Экскурсия",
-    price: [2400, 3900],
-    image: "/6.jpeg",
-    description: "Неспешный формат с наблюдением природы и финальной рефлексией.",
-    color: "#4FB3BF",
-  },
-];
-
-const toTimeLabel = (hours, minutes = 0) =>
-  `${pad(hours)}:${pad(minutes)}`;
-
-const generateEvents = () => {
-  const generated = [];
-  let idCounter = 1;
-  const eventsByDate = new Map();
-
-  for (let monthOffset = 0; monthOffset < MONTHS_AHEAD; monthOffset += 1) {
-    const monthDate = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-    const year = monthDate.getFullYear();
-    const monthIndex = monthDate.getMonth();
-    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-
-    const activeDaysCount = randomInt(8, 15);
-    const daySet = new Set();
-    while (daySet.size < Math.min(activeDaysCount, daysInMonth)) {
-      daySet.add(randomInt(1, daysInMonth));
-    }
-    const sortedDayNumbers = Array.from(daySet).sort((a, b) => a - b);
-
-    sortedDayNumbers.forEach((dayNumber) => {
-      const dayDate = new Date(year, monthIndex, dayNumber);
-      const dateKey = toDateKey(dayDate);
-      const eventsPerDay = randomInt(1, 3);
-
-      const baseHour = randomInt(8, 15);
-      for (let i = 0; i < eventsPerDay; i += 1) {
-        const template = eventTemplates[randomInt(0, eventTemplates.length - 1)];
-        const startHour = Math.min(baseHour + i * 2, 20);
-        const durationMinutes = [60, 90, 120][randomInt(0, 2)];
-        const endTotalMinutes = startHour * 60 + durationMinutes;
-        const endHour = Math.floor(endTotalMinutes / 60);
-        const endMinutes = endTotalMinutes % 60;
-
-        generated.push({
-          id: idCounter++,
-          date: dateKey,
-          title: template.title,
-          category: template.category,
-          start: toTimeLabel(startHour),
-          end: toTimeLabel(endHour, endMinutes),
-          price: randomInt(template.price[0], template.price[1]),
-          image: template.image,
-          description: template.description,
-          color: template.color,
-        });
-
-        eventsByDate.set(dateKey, (eventsByDate.get(dateKey) || 0) + 1);
-      }
-    });
-  }
-
-  if (generated.length < MIN_EVENTS_TARGET) {
-    const sortedDates = Array.from(eventsByDate.keys()).sort((a, b) =>
-      parseDateKey(a).getTime() - parseDateKey(b).getTime()
-    );
-
-    let dateCursor = 0;
-    while (generated.length < MIN_EVENTS_TARGET && sortedDates.length) {
-      const dateKey = sortedDates[dateCursor % sortedDates.length];
-      const dateLoad = eventsByDate.get(dateKey) || 0;
-
-      if (dateLoad < 3) {
-        const template = eventTemplates[randomInt(0, eventTemplates.length - 1)];
-        const startHour = 9 + dateLoad * 2;
-        const durationMinutes = [60, 90, 120][randomInt(0, 2)];
-        const endTotalMinutes = startHour * 60 + durationMinutes;
-        const endHour = Math.floor(endTotalMinutes / 60);
-        const endMinutes = endTotalMinutes % 60;
-
-        generated.push({
-          id: idCounter++,
-          date: dateKey,
-          title: template.title,
-          category: template.category,
-          start: toTimeLabel(startHour),
-          end: toTimeLabel(endHour, endMinutes),
-          price: randomInt(template.price[0], template.price[1]),
-          image: template.image,
-          description: template.description,
-          color: template.color,
-        });
-
-        eventsByDate.set(dateKey, dateLoad + 1);
-      }
-
-      dateCursor += 1;
-    }
-  }
-
-  return generated;
-};
-
-const events = ref(generateEvents());
-
-const monthFormatter = new Intl.DateTimeFormat("ru-RU", {
-  month: "long",
-  year: "numeric",
-});
 
 const dayFormatter = new Intl.DateTimeFormat("ru-RU", {
   day: "numeric",
@@ -333,53 +225,72 @@ const ribbonWeekdayFormatter = new Intl.DateTimeFormat("ru-RU", {
   weekday: "short",
 });
 
-const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+const capitalize = (text) => {
+  const value = String(text || "").trim();
+  if (!value) return "";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
 
-const groupedEvents = computed(() => {
-  const sortedEvents = [...events.value].sort((a, b) => {
-    const dateDiff = parseDateKey(a.date).getTime() - parseDateKey(b.date).getTime();
-    if (dateDiff !== 0) return dateDiff;
-    return String(a.start).localeCompare(String(b.start), "ru-RU");
-  });
+const schedule = ref([]);
+const loading = ref(true);
+const error = ref(null);
 
-  const monthMap = new Map();
+const normalizeApiSchedule = (payload) => {
+  if (!Array.isArray(payload)) return [];
 
-  sortedEvents.forEach((event) => {
-    const dateObj = parseDateKey(event.date);
-    const monthKey = toMonthKey(dateObj);
+  return payload.map((month) => {
+    const year = Number(month?.year || 0);
+    const monthNumber = Number(month?.month_number || 1);
+    const monthKey = `${year}-${pad(monthNumber)}`;
 
-    if (!monthMap.has(monthKey)) {
-      monthMap.set(monthKey, {
-        monthKey,
-        monthLabel: capitalize(monthFormatter.format(dateObj)),
-        daysMap: new Map(),
-      });
-    }
-
-    const monthGroup = monthMap.get(monthKey);
-    const dateKey = event.date;
-
-    if (!monthGroup.daysMap.has(dateKey)) {
+    const days = (Array.isArray(month?.days) ? month.days : []).map((day) => {
+      const dateKey = String(day?.date || "");
+      const dateObj = parseDateKey(dateKey);
       const weekdayLabel = ribbonWeekdayFormatter.format(dateObj).replace(".", "");
 
-      monthGroup.daysMap.set(dateKey, {
+      return {
         dateKey,
         dateLabel: capitalize(dayFormatter.format(dateObj)),
         ribbonWeekday: capitalize(weekdayLabel),
         ribbonDay: dateObj.getDate(),
-        events: [],
-      });
-    }
+        events: (Array.isArray(day?.events) ? day.events : []).map((event) => ({
+          id: event?.id,
+          start: String(event?.time_start || ""),
+          end: String(event?.time_end || ""),
+          title: String(event?.title || ""),
+          category: String(event?.category || ""),
+          description: String(event?.description || ""),
+          price: Number(event?.price || 0),
+          color: String(event?.color || "#6BA368"),
+          image: "",
+        })),
+      };
+    });
 
-    monthGroup.daysMap.get(dateKey).events.push(event);
+    return {
+      monthKey,
+      monthLabel: capitalize(String(month?.month || "")),
+      days,
+    };
   });
+};
 
-  return Array.from(monthMap.values()).map((monthGroup) => ({
-    monthKey: monthGroup.monthKey,
-    monthLabel: monthGroup.monthLabel,
-    days: Array.from(monthGroup.daysMap.values()),
-  }));
+onMounted(async () => {
+  console.log("Schedule mounted");
+
+  try {
+    const data = await getSchedule();
+    console.log("SCHEDULE API DATA:", data);
+    schedule.value = normalizeApiSchedule(data);
+  } catch (e) {
+    console.error("Schedule error:", e);
+    error.value = e instanceof Error ? e.message : "Failed to load schedule";
+  } finally {
+    loading.value = false;
+  }
 });
+
+const groupedEvents = computed(() => schedule.value);
 
 const activeMonth = ref("");
 const activeDay = ref("");
@@ -529,7 +440,7 @@ const openModal = (event) => {
   activeEvent.value = event;
 };
 
-const formatPrice = (value) => `${Number(value).toLocaleString("ru-RU")} ₽`;
+const formatPrice = (value) => `${Number(value || 0).toLocaleString("ru-RU")} ₽`;
 </script>
 
 <style scoped>
@@ -829,3 +740,4 @@ const formatPrice = (value) => `${Number(value).toLocaleString("ru-RU")} ₽`;
   }
 }
 </style>
+

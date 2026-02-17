@@ -1,6 +1,15 @@
 from rest_framework import serializers
 
-from .models import Article, HeroBlock, News, Review, Service, Tariff
+from .models import (
+    Article,
+    HeroBlock,
+    News,
+    Review,
+    ScheduleDay,
+    ScheduleEvent,
+    Service,
+    Tariff,
+)
 
 
 class HeroBlockSerializer(serializers.ModelSerializer):
@@ -90,3 +99,42 @@ class ServiceSerializer(serializers.ModelSerializer):
     def get_children(self, obj):
         children = obj.children.all().order_by("order")
         return ServiceSerializer(children, many=True, context=self.context).data
+
+
+class ScheduleEventSerializer(serializers.ModelSerializer):
+    time_start = serializers.TimeField(format="%H:%M")
+    time_end = serializers.TimeField(format="%H:%M")
+
+    class Meta:
+        model = ScheduleEvent
+        fields = (
+            "id",
+            "time_start",
+            "time_end",
+            "title",
+            "category",
+            "description",
+            "price",
+            "color",
+        )
+
+
+class ScheduleDaySerializer(serializers.ModelSerializer):
+    weekday = serializers.SerializerMethodField()
+    events = ScheduleEventSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ScheduleDay
+        fields = ("date", "weekday", "events")
+
+    def get_weekday(self, obj):
+        weekdays = [
+            "Понедельник",
+            "Вторник",
+            "Среда",
+            "Четверг",
+            "Пятница",
+            "Суббота",
+            "Воскресенье",
+        ]
+        return weekdays[obj.date.weekday()]
