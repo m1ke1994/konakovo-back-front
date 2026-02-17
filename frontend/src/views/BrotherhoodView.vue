@@ -1,33 +1,46 @@
 <script setup>
-import PageTemplate from '../components/PageTemplate.vue';
-import AppHeader from '../components/AppHeader.vue';
-import AppFooter from '../components/AppFooter.vue';
+import { onMounted, ref } from "vue";
+import PageTemplate from "../components/PageTemplate.vue";
+import AppHeader from "../components/AppHeader.vue";
+import AppFooter from "../components/AppFooter.vue";
+import { getPage } from "@/api/pages";
 
-const pageData = {
-    title: 'Братство лосей',
-    subtitle:
-        'Экскурсии и встречи в духе «Нового Конаково»: мягкий ритм, внимательные истории и контакт с природой, который остаётся с вами надолго.',
-    heroImage: '/2.jpeg',
-    sections: [
-        {
-            title: 'Экскурсии с заботой',
-            text: 'Маршруты строятся так, чтобы вы успели замедлиться, услышать лес и увидеть главное — без спешки.',
-        },
-        {
-            title: 'Наблюдение и тишина',
-            text: 'Встречи с животными, наблюдения за природой и небольшие практики внимания.',
-        },
-        {
-            title: 'Сообщество',
-            text: 'После прогулки остаётся желание вернуться: общение, поддержка и ощущение «своего круга».',
-        },
-    ],
-    gallery: ['/2.jpeg', '/1.jpeg', '/3.jpeg', '/6.jpeg'],
-};
+const page = ref(null);
+const loading = ref(true);
+const error = ref(null);
+
+onMounted(async () => {
+  try {
+    const data = await getPage("brotherhood");
+    page.value = data;
+  } catch (e) {
+    console.error(e);
+    error.value = "Не удалось загрузить страницу";
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
-    <AppHeader />
-    <PageTemplate v-bind="pageData" />
-    <AppFooter />
+  <AppHeader />
+  <main class="page-state">
+    <p v-if="loading">Загрузка…</p>
+    <p v-else-if="error">{{ error }}</p>
+    <PageTemplate
+      v-if="page"
+      :title="page.title"
+      :subtitle="page.subtitle"
+      :heroImage="page.hero_image"
+      :sections="page.sections"
+      :gallery="page.gallery"
+    />
+  </main>
+  <AppFooter />
 </template>
+
+<style scoped>
+.page-state {
+  min-height: 40vh;
+}
+</style>
