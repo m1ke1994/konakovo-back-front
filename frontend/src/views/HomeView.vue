@@ -14,7 +14,7 @@ import { getNewsList } from "../api/news";
 
 const menuItems = [
   { label: "Обо мне", to: "/about" },
-  { label: "Братство Лосей", to: "/moose" },
+  { label: "Братство Лосей", to: "/brotherhood" },
   { label: "Волонтерские программы", to: "/volunteer" },
   { label: "Беговой клуб", to: "/running-club" },
   { label: "Услуги и цены", href: "#services", mobileOnly: true },

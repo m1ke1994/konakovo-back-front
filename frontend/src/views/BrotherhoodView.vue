@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import PageTemplate from "../components/PageTemplate.vue";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
+import PageTemplate from "../components/PageTemplate.vue";
 import { getPage } from "@/api/pages";
 
 const page = ref(null);
@@ -15,7 +15,7 @@ onMounted(async () => {
     page.value = data;
   } catch (e) {
     console.error(e);
-    error.value = "Не удалось загрузить страницу";
+    error.value = e?.response?.status === 404 ? "Страница не найдена" : "Не удалось загрузить страницу";
   } finally {
     loading.value = false;
   }

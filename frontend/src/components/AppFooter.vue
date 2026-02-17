@@ -10,7 +10,7 @@
 
           <nav class="footer__nav" aria-label="Навигация">
             <router-link class="footer__link" to="/about">Обо мне</router-link>
-            <router-link class="footer__link" to="/moose">Братство лосей</router-link>
+            <router-link class="footer__link" to="/brotherhood">Братство лосей</router-link>
             <router-link class="footer__link" to="/volunteer">Волонтерские программы</router-link>
             <router-link class="footer__link" to="/running-club">Беговой клуб</router-link>
             <router-link class="footer__link" to="/schedule">Расписание занятий</router-link>

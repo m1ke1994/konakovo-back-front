@@ -18,7 +18,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
     { path: '/about', name: 'about', component: () => import('../views/AboutView.vue') },
-    { path: '/moose', name: 'moose', component: () => import('../views/MooseView.vue') },
+    { path: '/moose', redirect: '/brotherhood' },
     { path: '/volunteer', name: 'volunteer', component: () => import('../views/VolunteerView.vue') },
     { path: '/running-club', name: 'running-club', component: () => import('../views/RunningClubView.vue') },
     { path: '/bronze-club', redirect: '/running-club' },
@@ -31,7 +31,7 @@ const router = createRouter({
     { path: '/contacts', name: 'contacts', component: () => import('../views/ContactsView.vue') },
     { path: '/privacy', name: 'privacy', component: () => import('../views/PrivacyView.vue') },
     { path: '/terms', name: 'terms', component: () => import('../views/TermsView.vue') },
-    { path: '/brotherhood', redirect: '/moose' },
+    { path: '/brotherhood', name: 'brotherhood', component: () => import('../views/BrotherhoodView.vue') },
     { path: '/:pathMatch(.*)*', redirect: '/' }
   ]
 })
