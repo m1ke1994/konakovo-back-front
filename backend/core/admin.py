@@ -4,7 +4,7 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Article, HeroBlock, News, Review
+from .models import Article, HeroBlock, News, Review, Service, Tariff
 
 
 @admin.register(HeroBlock)
@@ -118,3 +118,17 @@ class NewsAdmin(admin.ModelAdmin):
         ("Превью", {"fields": ("description", "image")}),
         ("Контент", {"fields": ("content",)}),
     )
+
+class TariffInline(admin.TabularInline):
+    model = Tariff
+    extra = 1
+    fields = ("title", "slug", "description", "duration", "price", "order")
+
+
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ("title", "is_category", "parent", "order")
+    list_filter = ("is_category",)
+    search_fields = ("title", "slug")
+    prepopulated_fields = {"slug": ("title",)}
+    inlines = (TariffInline,)

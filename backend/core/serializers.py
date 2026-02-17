@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Article, HeroBlock, News, Review
+from .models import Article, HeroBlock, News, Review, Service, Tariff
 
 
 class HeroBlockSerializer(serializers.ModelSerializer):
@@ -62,3 +62,31 @@ class NewsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = News
         fields = ("id", "title", "slug", "description", "image", "published_date")
+
+
+class TariffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tariff
+        fields = ("id", "title", "slug", "description", "duration", "price", "order")
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+    tariffs = TariffSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Service
+        fields = (
+            "id",
+            "title",
+            "slug",
+            "description",
+            "is_category",
+            "order",
+            "children",
+            "tariffs",
+        )
+
+    def get_children(self, obj):
+        children = obj.children.all().order_by("order")
+        return ServiceSerializer(children, many=True, context=self.context).data

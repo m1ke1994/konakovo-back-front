@@ -120,3 +120,44 @@ class News(models.Model):
                 index += 1
             self.slug = slug
         super().save(*args, **kwargs)
+
+
+class Service(models.Model):
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    is_category = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        related_name="children",
+        on_delete=models.CASCADE,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.title
+
+
+class Tariff(models.Model):
+    service = models.ForeignKey(Service, related_name="tariffs", on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    slug = models.SlugField()
+    description = models.TextField(blank=True)
+    duration = models.CharField(max_length=255, blank=True)
+    price = models.IntegerField()
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order"]
+        unique_together = ("service", "slug")
+
+    def __str__(self):
+        return f"{self.service.title}: {self.title}"

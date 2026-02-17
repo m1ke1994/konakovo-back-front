@@ -1,5 +1,5 @@
 import { computed, ref } from "vue";
-import { servicesSeed } from "../data/servicesSeed";
+import { getServices } from "../api/services";
 
 const servicesTree = ref([]);
 const servicesLoading = ref(false);
@@ -177,8 +177,6 @@ const normalizeServices = (items) => {
   return buildTreeFromFlat(items);
 };
 
-const cloneSeed = () => JSON.parse(JSON.stringify(servicesSeed));
-
 const servicePathIndex = computed(() => {
   const map = new Map();
   const traverse = (items) => {
@@ -232,8 +230,13 @@ export const loadServices = async ({ force = false } = {}) => {
   servicesError.value = "";
 
   try {
-    servicesTree.value = normalizeServices(cloneSeed());
+    const payload = await getServices();
+    servicesTree.value = normalizeServices(Array.isArray(payload) ? payload : []);
     servicesLoaded.value = true;
+  } catch (error) {
+    console.error("[services] failed to load", error);
+    servicesTree.value = [];
+    servicesError.value = "Не удалось загрузить услуги.";
   } finally {
     servicesLoading.value = false;
   }
@@ -259,4 +262,3 @@ export const useServices = () => {
     loadServices,
   };
 };
-

@@ -2,7 +2,7 @@ from rest_framework import generics, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Article, HeroBlock, News, Review
+from .models import Article, HeroBlock, News, Review, Service
 from .serializers import (
     ArticleListSerializer,
     ArticleSerializer,
@@ -10,6 +10,7 @@ from .serializers import (
     NewsListSerializer,
     NewsSerializer,
     ReviewSerializer,
+    ServiceSerializer,
 )
 
 
@@ -51,3 +52,8 @@ class NewsDetailAPIView(generics.RetrieveAPIView):
     queryset = News.objects.filter(is_published=True)
     serializer_class = NewsSerializer
     lookup_field = "slug"
+
+
+class ServiceViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Service.objects.filter(parent__isnull=True).prefetch_related("children", "tariffs")
+    serializer_class = ServiceSerializer
