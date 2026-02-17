@@ -1,7 +1,13 @@
 <script setup>
+import { ref } from "vue";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
 import PageTemplate from "../components/PageTemplate.vue";
+
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
+const LEADS_ENDPOINT = `${API_ORIGIN}/api/leads/`;
+const submitError = ref("");
+const isSubmitting = ref(false);
 
 const pageData = {
   title: "Контакты",
@@ -26,11 +32,57 @@ const pageData = {
   gallery: ["/1.jpeg", "/2.jpeg", "/3.jpeg", "/5.jpeg"],
 };
 
-const handleSubmit = (event) => {
+const handleSubmit = async (event) => {
   const form = event.target;
   form.classList.add("is-submitted");
-  if (!form.checkValidity()) return;
-  // TODO: backend integration.
+  submitError.value = "";
+  if (!form.checkValidity() || isSubmitting.value) return;
+
+  const payload = {
+    name: form.name.value,
+    contact: form.contact.value,
+    message: form.message.value,
+  };
+
+  try {
+    isSubmitting.value = true;
+
+    const response = await fetch(LEADS_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let message = "Не удалось отправить заявку. Попробуйте снова.";
+
+      try {
+        const errorData = await response.json();
+        if (errorData && typeof errorData === "object") {
+          const firstError = Object.values(errorData).find((value) => Array.isArray(value) && value.length > 0);
+          if (Array.isArray(firstError)) {
+            message = String(firstError[0]);
+          }
+        }
+      } catch (parseError) {
+        // Ignore parsing errors and keep default message.
+      }
+
+      throw new Error(message);
+    }
+
+    await response.json();
+    form.reset();
+    form.classList.remove("is-submitted");
+    window.alert("Спасибо! Ваша заявка отправлена.");
+  } catch (error) {
+    submitError.value = error instanceof Error ? error.message : "Не удалось отправить заявку. Попробуйте снова.";
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 
@@ -136,7 +188,8 @@ const handleSubmit = (event) => {
           <textarea class="contacts__input contacts__input--area" name="message" rows="5" placeholder=" " required></textarea>
         </label>
 
-        <button class="contacts__submit btn-primary" type="submit">Отправить</button>
+        <button class="contacts__submit btn-primary" type="submit" :disabled="isSubmitting">Отправить</button>
+        <p v-if="submitError">{{ submitError }}</p>
       </form>
     </div>
   </section>

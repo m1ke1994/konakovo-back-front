@@ -81,7 +81,7 @@
             </div>
           </div>
 
-          <button class="btn-primary" @click="handleConfirm">
+          <button class="btn-primary" :disabled="isSubmitting" @click="handleConfirm">
             Согласовать
           </button>
         </div>
@@ -92,6 +92,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { createDayScenario } from "../api/dayScenarios";
 import { formatPrice, loadServices, useServices } from "../composables/useServices";
 
 const { servicesWithTariffs } = useServices();
@@ -103,6 +104,7 @@ const contact = ref("");
 const date = ref("");
 const guests = ref("");
 const comment = ref("");
+const isSubmitting = ref(false);
 
 onMounted(() => {
   loadServices();
@@ -133,16 +135,57 @@ const selectedTariffs = computed(() =>
 
 const total = computed(() => selectedTariffs.value.reduce((sum, tariff) => sum + tariff.price, 0));
 
-const handleConfirm = () => {
-  console.log({
-    tariffs: selectedTariffs.value,
-    total: total.value,
-    name: name.value,
-    contact: contact.value,
-    date: date.value,
-    guests: guests.value,
-    comment: comment.value,
-  });
+const resetScenarioForm = () => {
+  selectedTariffIds.value = [];
+  name.value = "";
+  contact.value = "";
+  date.value = "";
+  guests.value = "";
+  comment.value = "";
+};
+
+const handleConfirm = async () => {
+  if (isSubmitting.value) return;
+
+  const trimmedName = name.value.trim();
+  const trimmedContact = contact.value.trim();
+  const guestsCount = Number(guests.value);
+  const selectedItems = selectedTariffs.value.map((tariff) => ({
+    title: `${tariff.serviceTitle} - ${tariff.title}`,
+    price: tariff.price,
+    quantity: 1,
+  }));
+
+  if (!trimmedName || !trimmedContact || !date.value || !Number.isFinite(guestsCount) || guestsCount < 1) {
+    window.alert("Заполните имя, контакт, дату и количество гостей.");
+    return;
+  }
+
+  if (!selectedItems.length) {
+    window.alert("Выберите хотя бы одну программу.");
+    return;
+  }
+
+  try {
+    isSubmitting.value = true;
+    await createDayScenario({
+      name: trimmedName,
+      contact: trimmedContact,
+      date: date.value,
+      guests_count: guestsCount,
+      comment: comment.value.trim(),
+      total_price: total.value,
+      items: selectedItems,
+    });
+
+    resetScenarioForm();
+    window.alert("Сценарий отправлен. Мы свяжемся с вами.");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Не удалось отправить сценарий. Попробуйте снова.";
+    window.alert(message);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
 
