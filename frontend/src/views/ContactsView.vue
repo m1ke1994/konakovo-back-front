@@ -15,8 +15,8 @@ const pageData = {
     },
     {
       title: "Связаться с нами",
-      text: "Телефон: +7 (999) 000-00-00 · Email: hello@novoe-konakovo.ru",
-      action: { label: "Написать", href: "mailto:hello@novoe-konakovo.ru" },
+      text: "Телефон: +7 (985) 200-63-22 · Email: elizaveta-struchkova@yandex.ru",
+      action: { label: "Написать", href: "mailto:elizaveta-struchkova@yandex.ru" },
     },
     {
       title: "Время работы",
@@ -73,7 +73,7 @@ const handleSubmit = (event) => {
               </span>
               <div>
                 <p class="contacts__label">Телефон</p>
-                <p class="contacts__value">+7 (999) 000-00-00</p>
+                <p class="contacts__value">+7 (985) 200-63-22</p>
               </div>
             </div>
 
@@ -86,7 +86,7 @@ const handleSubmit = (event) => {
               </span>
               <div>
                 <p class="contacts__label">Email</p>
-                <p class="contacts__value">hello@novoe-konakovo.ru</p>
+                <p class="contacts__value">elizaveta-struchkova@yandex.ru</p>
               </div>
             </div>
 
@@ -98,7 +98,7 @@ const handleSubmit = (event) => {
               </span>
               <div>
                 <p class="contacts__label">Telegram</p>
-                <p class="contacts__value">@username</p>
+                <p class="contacts__value">@bhakti_girl</p>
               </div>
             </div>
           </div>
