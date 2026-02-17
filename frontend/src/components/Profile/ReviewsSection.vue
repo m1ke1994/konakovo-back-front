@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div
     ref="reviewsRef"
     class="reviews"

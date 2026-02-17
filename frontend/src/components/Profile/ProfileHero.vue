@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <div class="hero">
         <div class="hero-nav__overlay" :class="{ 'hero-nav__overlay--show': isMenuOpen }" @click="closeMenu"></div>
         <aside class="hero-nav__drawer" :class="{ 'hero-nav__drawer--open': isMenuOpen }">

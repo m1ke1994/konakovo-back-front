@@ -1,6 +1,6 @@
-﻿from rest_framework import serializers
+from rest_framework import serializers
 
-from .models import HeroBlock, Review
+from .models import Article, HeroBlock, Review
 
 
 class HeroBlockSerializer(serializers.ModelSerializer):
@@ -30,3 +30,23 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = "__all__"
+
+
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = "__all__"
+
+
+class ArticleListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = (
+            "title",
+            "slug",
+            "preview_image",
+            "preview_description",
+            "content_type",
+            "published_date",
+            "created_at",
+        )

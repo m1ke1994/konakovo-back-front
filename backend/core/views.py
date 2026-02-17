@@ -1,9 +1,14 @@
-﻿from rest_framework import mixins, status, viewsets
+from rest_framework import generics, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import HeroBlock, Review
-from .serializers import HeroBlockSerializer, ReviewSerializer
+from .models import Article, HeroBlock, Review
+from .serializers import (
+    ArticleListSerializer,
+    ArticleSerializer,
+    HeroBlockSerializer,
+    ReviewSerializer,
+)
 
 
 class HeroBlockAPIView(APIView):
@@ -22,3 +27,14 @@ class HeroBlockAPIView(APIView):
 class ReviewViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+
+class ArticleListAPIView(generics.ListAPIView):
+    queryset = Article.objects.filter(is_published=True)
+    serializer_class = ArticleListSerializer
+
+
+class ArticleDetailAPIView(generics.RetrieveAPIView):
+    queryset = Article.objects.filter(is_published=True)
+    serializer_class = ArticleSerializer
+    lookup_field = "slug"

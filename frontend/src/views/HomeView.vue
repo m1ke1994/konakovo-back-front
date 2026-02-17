@@ -1,5 +1,5 @@
-﻿<script setup>
-import { computed } from "vue";
+<script setup>
+import { computed, onMounted, ref } from "vue";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
 import ProfileHero from "../components/Profile/ProfileHero.vue";
@@ -9,7 +9,7 @@ import FeedbackSection from "../components/FeedbackSection.vue";
 import ReviewsSection from "../components/Profile/ReviewsSection.vue";
 import ArticleCard from "../components/ArticleCard.vue";
 import NewsCard from "../components/NewsCard.vue";
-import { materials } from "../data/articles";
+import { getArticles } from "../api/articles";
 import { newsItems } from "../data/news";
 
 const menuItems = [
@@ -24,9 +24,13 @@ const menuItems = [
   { label: "Контакты", to: "/contacts" },
 ];
 
+const loadingArticles = ref(false);
+const articleError = ref("");
+const materials = ref([]);
+
 const latestMaterials = computed(() =>
-  [...materials]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  [...materials.value]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 4)
 );
 
@@ -35,6 +39,25 @@ const latestNews = computed(() =>
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 4)
 );
+
+const loadArticles = async () => {
+  loadingArticles.value = true;
+  articleError.value = "";
+
+  try {
+    materials.value = await getArticles();
+  } catch (err) {
+    console.error("[articles] failed to load", err);
+    materials.value = [];
+    articleError.value = "Не удалось загрузить материалы.";
+  } finally {
+    loadingArticles.value = false;
+  }
+};
+
+onMounted(() => {
+  loadArticles();
+});
 </script>
 
 <template>
@@ -60,13 +83,15 @@ const latestNews = computed(() =>
             </div>
 
             <div class="articles-home__grid">
+              <p v-if="loadingArticles">Загрузка...</p>
               <ArticleCard
                 v-for="item in latestMaterials"
-                :key="item.id"
+                :key="item.slug"
                 :item="item"
                 :show-description="false"
               />
             </div>
+            <p v-if="articleError">{{ articleError }}</p>
             <div class="articles-home__footer">
               <router-link class="articles-home__link btn-secondary" to="/articles">Все материалы / Видео</router-link>
             </div>

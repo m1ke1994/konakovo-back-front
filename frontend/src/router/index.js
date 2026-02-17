@@ -24,7 +24,7 @@ const router = createRouter({
     { path: '/bronze-club', redirect: '/running-club' },
     { path: '/schedule', name: 'schedule', component: () => import('../views/ScheduleView.vue') },
     { path: '/articles', name: 'articles', component: () => import('../views/ArticlesView.vue') },
-    { path: '/articles/:id', name: 'article-single', component: () => import('../views/ArticlesSingleView.vue') },
+    { path: '/articles/:slug', name: 'article-single', component: () => import('../views/ArticlesSingleView.vue') },
     { path: '/news', name: 'news', component: () => import('../views/NewsView.vue') },
     { path: '/news/:id', name: 'news-single', component: () => import('../views/NewsSingleView.vue') },
     { path: '/services/:slugPath(.*)', name: 'service-detail', component: () => import('../views/ServiceDetailView.vue') },

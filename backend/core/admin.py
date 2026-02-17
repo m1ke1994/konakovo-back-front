@@ -1,7 +1,7 @@
-﻿from django.contrib import admin
+from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import HeroBlock, Review
+from .models import Article, HeroBlock, Review
 
 
 @admin.register(HeroBlock)
@@ -53,3 +53,16 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ("avatar", "name", "event_name", "rating", "date", "created_at")
     list_filter = ("rating", "date")
     search_fields = ("name", "event_name")
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ("title", "content_type", "is_published", "published_date", "created_at")
+    list_filter = ("content_type", "is_published", "published_date")
+    search_fields = ("title",)
+    prepopulated_fields = {"slug": ("title",)}
+    fieldsets = (
+        ("Основное", {"fields": ("title", "slug", "content_type", "is_published", "published_date")}),
+        ("Превью", {"fields": ("preview_image", "preview_description")}),
+        ("Контент", {"fields": ("content", "video_url")}),
+    )

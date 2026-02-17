@@ -1,24 +1,42 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
-import { materials } from "../data/articles";
+import { getArticleBySlug } from "../api/articles";
 
 const route = useRoute();
 
-const article = computed(() => {
-  const id = Number(route.params.id);
-  return materials.find((item) => item.id === id) ?? null;
-});
+const article = ref(null);
+const loading = ref(false);
+const error = ref("");
 
 const formattedDate = computed(() => {
-  if (!article.value) return "";
-  return new Date(article.value.date).toLocaleDateString("ru-RU", {
+  if (!article.value?.created_at) return "";
+  return new Date(article.value.created_at).toLocaleDateString("ru-RU", {
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
+});
+
+const loadArticle = async () => {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    article.value = await getArticleBySlug(route.params.slug);
+  } catch (err) {
+    console.error("[article] failed to load", err);
+    article.value = null;
+    error.value = "Материал не найден";
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadArticle();
 });
 </script>
 
@@ -26,16 +44,20 @@ const formattedDate = computed(() => {
   <AppHeader />
 
   <main class="single-article">
-    <section v-if="article" class="single-article__content">
-      <router-link class="single-article__back" to="/articles">Назад к статьям</router-link>
+    <section v-if="loading" class="single-article__not-found glass-card">
+      <h1>Загрузка...</h1>
+    </section>
+
+    <section v-else-if="article" class="single-article__content">
+      <router-link class="single-article__back" to="/articles">Назад</router-link>
       <p class="single-article__date">{{ formattedDate }}</p>
       <h1 class="single-article__title">{{ article.title }}</h1>
-      <img class="single-article__cover" :src="article.image" :alt="article.title" />
+      <img class="single-article__cover" :src="article.preview_image" :alt="article.title" />
 
-      <div v-if="article.videoUrl" class="single-article__video">
+      <div v-if="article.content_type === 'video' && article.video_url" class="single-article__video">
         <iframe
-          :src="article.videoUrl"
-          title="Видео в статье"
+          :src="article.video_url"
+          title="Р’РёРґРµРѕ РІ СЃС‚Р°С‚СЊРµ"
           loading="lazy"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerpolicy="strict-origin-when-cross-origin"
@@ -47,8 +69,8 @@ const formattedDate = computed(() => {
     </section>
 
     <section v-else class="single-article__not-found glass-card">
-      <h1>Материал не найден</h1>
-      <router-link class="single-article__back" to="/articles">Назад к статьям</router-link>
+      <h1>{{ error || "РњР°С‚РµСЂРёР°Р» РЅРµ РЅР°Р№РґРµРЅ" }}</h1>
+      <router-link class="single-article__back" to="/articles">Назад</router-link>
     </section>
   </main>
 

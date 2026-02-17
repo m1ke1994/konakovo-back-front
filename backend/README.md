@@ -1,4 +1,4 @@
-﻿# Backend Docker prerequisites
+# Backend Docker prerequisites
 
 To run the backend container, place your Django project in this folder with at least:
 

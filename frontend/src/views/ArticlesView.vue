@@ -1,22 +1,42 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
 import ArticleCard from "../components/ArticleCard.vue";
-import { materials } from "../data/articles";
+import { getArticles } from "../api/articles";
 
 const activeTab = ref("article");
+const loading = ref(false);
+const error = ref("");
+const materials = ref([]);
 
 const tabs = [
   { id: "article", label: "Статьи" },
   { id: "video", label: "Видео" },
 ];
 
-const sortedMaterials = computed(() =>
-  [...materials].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+const filteredMaterials = computed(() =>
+  materials.value.filter((item) => item.content_type === activeTab.value)
 );
 
-const filteredMaterials = computed(() => sortedMaterials.value.filter((item) => item.type === activeTab.value));
+const loadArticles = async () => {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    materials.value = await getArticles();
+  } catch (err) {
+    console.error("[articles] failed to load", err);
+    materials.value = [];
+    error.value = "Не удалось загрузить материалы.";
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadArticles();
+});
 </script>
 
 <template>
@@ -26,11 +46,11 @@ const filteredMaterials = computed(() => sortedMaterials.value.filter((item) => 
     <section class="articles-page__hero">
       <h1 class="articles-page__title">Статьи / Видео</h1>
       <p class="articles-page__subtitle">
-        Подборка материалов о жизни в «Новом Конаково»: маршруты, практики, события и видео-статьи со встроенными роликами.
+     Статьи и видео о жизни в «Новом Конаково»: маршруты, практики, события и вдохновение для спокойного и активного отдыха.
       </p>
     </section>
 
-    <section class="articles-page__tabs" aria-label="Фильтр материалов">
+    <section class="articles-page__tabs" aria-label="Р¤РёР»СЊС‚СЂ РјР°С‚РµСЂРёР°Р»РѕРІ">
       <button
         v-for="tab in tabs"
         :key="tab.id"
@@ -44,8 +64,11 @@ const filteredMaterials = computed(() => sortedMaterials.value.filter((item) => 
     </section>
 
     <section class="articles-page__grid">
-      <ArticleCard v-for="item in filteredMaterials" :key="item.id" :item="item" />
+      <p v-if="loading">Загрузка...</p>
+      <ArticleCard v-for="item in filteredMaterials" :key="item.slug" :item="item" />
     </section>
+
+    <p v-if="error">{{ error }}</p>
   </main>
 
   <AppFooter />

@@ -1,4 +1,4 @@
-﻿FROM python:3.11-slim
+FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -13,7 +13,7 @@ RUN apt-get update \
         gettext \
         locales \
     && sed -i '/ru_RU.UTF-8/s/^# //g' /etc/locale.gen \
-    && locale-gen \
+    && locale-gen ru_RU.UTF-8 \
     && update-locale LANG=ru_RU.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 

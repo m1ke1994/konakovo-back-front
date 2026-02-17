@@ -1,4 +1,5 @@
-﻿from django.db import models
+from django.db import models
+from django.utils.text import slugify
 
 
 class HeroBlock(models.Model):
@@ -53,3 +54,39 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.event_name})"
+
+
+class Article(models.Model):
+    class ContentTypeChoices(models.TextChoices):
+        ARTICLE = "article", "Статья"
+        VIDEO = "video", "Видео"
+
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, blank=True)
+    preview_image = models.ImageField(upload_to="articles/", null=True, blank=True)
+    preview_description = models.TextField()
+    content = models.TextField()
+    content_type = models.CharField(max_length=20, choices=ContentTypeChoices.choices)
+    video_url = models.URLField(null=True, blank=True)
+    is_published = models.BooleanField(default=True)
+    published_date = models.DateField(verbose_name="Дата публикации")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Статья / Видео"
+        verbose_name_plural = "Статьи и видео"
+        ordering = ["-published_date", "-created_at"]
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title) or "article"
+            slug = base_slug
+            index = 1
+            while Article.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{index}"
+                index += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
