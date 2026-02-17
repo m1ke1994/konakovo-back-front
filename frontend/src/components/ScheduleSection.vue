@@ -160,42 +160,44 @@
       </div>
     </div>
 
-    <div
-      v-if="activeEvent"
-      class="program-modal"
-      @click.self="activeEvent = null"
-    >
-      <div class="program-modal__card">
-        <button
-          class="program-modal__close"
-          @click="activeEvent = null"
-        >
-          ✕
-        </button>
+    <Teleport to="body">
+      <div
+        v-if="activeEvent"
+        class="program-modal"
+        @click.self="closeModal"
+      >
+        <div class="program-modal__card">
+          <button
+            class="program-modal__close"
+            @click="closeModal"
+          >
+            ✕
+          </button>
 
-        <h3>{{ activeEvent.title }}</h3>
+          <h3>{{ activeEvent.title }}</h3>
 
-        <p class="program-modal__time">
-          {{ activeEvent.start }} — {{ activeEvent.end }}
-        </p>
+          <p class="program-modal__time">
+            {{ activeEvent.start }} — {{ activeEvent.end }}
+          </p>
 
-        <img
-          v-if="activeEvent.image"
-          :src="activeEvent.image"
-          class="program-modal__image"
-        />
+          <img
+            v-if="activeEvent.image"
+            :src="activeEvent.image"
+            class="program-modal__image"
+          />
 
-        <p class="program-modal__desc">
-          {{ activeEvent.description }}
-        </p>
+          <p class="program-modal__desc">
+            {{ activeEvent.description }}
+          </p>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
 
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { getSchedule } from "../api/schedule";
 
 const pad = (value) => String(value).padStart(2, "0");
@@ -435,12 +437,27 @@ watch(
 );
 
 const activeEvent = ref(null);
+const savedScrollY = ref(0);
 
-const openModal = (event) => {
+const openModal = async (event) => {
+  savedScrollY.value = window.scrollY;
   activeEvent.value = event;
+  await nextTick();
+  window.scrollTo({ top: savedScrollY.value, behavior: "auto" });
+  document.body.style.overflow = "hidden";
+};
+
+const closeModal = () => {
+  activeEvent.value = null;
+  document.body.style.overflow = "";
+  window.scrollTo({ top: savedScrollY.value, behavior: "auto" });
 };
 
 const formatPrice = (value) => `${Number(value || 0).toLocaleString("ru-RU")} ₽`;
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = "";
+});
 </script>
 
 <style scoped>
@@ -691,11 +708,15 @@ const formatPrice = (value) => `${Number(value || 0).toLocaleString("ru-RU")} �
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  padding: 16px;
+  overflow-y: auto;
+  z-index: 2100;
 }
 
 .program-modal__card {
-  width: 420px;
+  width: min(560px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
   background: var(--card);
   border-radius: 14px;
   padding: 24px;
