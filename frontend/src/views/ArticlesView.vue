@@ -46,11 +46,11 @@ onMounted(() => {
     <section class="articles-page__hero">
       <h1 class="articles-page__title">Статьи / Видео</h1>
       <p class="articles-page__subtitle">
-     Статьи и видео о жизни в «Новом Конаково»: маршруты, практики, события и вдохновение для спокойного и активного отдыха.
+        Статьи и видео о жизни в «Новом Конаково»: маршруты, практики, события и вдохновение для спокойного и активного отдыха.
       </p>
     </section>
 
-    <section class="articles-page__tabs" aria-label="Р¤РёР»СЊС‚СЂ РјР°С‚РµСЂРёР°Р»РѕРІ">
+    <section class="articles-page__tabs" aria-label="Фильтр материалов">
       <button
         v-for="tab in tabs"
         :key="tab.id"

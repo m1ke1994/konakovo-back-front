@@ -1,19 +1,48 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { getNewsBySlug } from '../data/news'
-import AppHeader from '../components/AppHeader.vue'
-import AppFooter from '../components/AppFooter.vue'
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import { getNewsBySlug } from "../api/news";
+import AppHeader from "../components/AppHeader.vue";
+import AppFooter from "../components/AppFooter.vue";
 
-const route = useRoute()
+const route = useRoute();
+const loading = ref(false);
+const newsItem = ref(null);
 
-const newsItem = computed(() => getNewsBySlug(route.params.slug))
+const formattedDate = computed(() => {
+  if (!newsItem.value?.published_date) return "";
+  return new Date(newsItem.value.published_date).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+});
+
+const loadNews = async () => {
+  loading.value = true;
+  try {
+    newsItem.value = await getNewsBySlug(route.params.slug);
+  } catch (err) {
+    console.error("[news-detail] failed to load", err);
+    newsItem.value = null;
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadNews();
+});
 </script>
 
 <template>
   <AppHeader />
   <section class="news-detail">
-    <div v-if="newsItem" class="news-detail__content">
+    <div v-if="loading" class="news-detail__empty glass-card">
+      <h1 class="news-detail__empty-title">Загрузка...</h1>
+    </div>
+
+    <div v-else-if="newsItem" class="news-detail__content">
       <router-link class="news-detail__back" to="/news">← Все новости</router-link>
 
       <article class="news-detail__article glass-card">
@@ -21,8 +50,7 @@ const newsItem = computed(() => getNewsBySlug(route.params.slug))
 
         <div class="news-detail__inner">
           <div class="news-detail__meta">
-            <span class="news-detail__chip">{{ newsItem.category }}</span>
-            <span class="news-detail__date">{{ newsItem.date }}</span>
+            <span class="news-detail__date">{{ formattedDate }}</span>
           </div>
 
           <h1 class="news-detail__title">{{ newsItem.title }}</h1>

@@ -26,7 +26,7 @@ const normalizeTariff = (tariff, index = 0) => ({
   title: String(tariff?.title || ""),
   description: String(tariff?.description || ""),
   duration: String(tariff?.duration || tariff?.duration_label || ""),
-  actionLabel: String(tariff?.action_label || "Р’С‹Р±СЂР°С‚СЊ"),
+  actionLabel: String(tariff?.action_label || "Выбрать"),
   actionLink: String(tariff?.action_link || ""),
   price: toNumber(tariff?.price, 0),
   order: toNumber(tariff?.order, index),
@@ -212,7 +212,7 @@ const flattenServicesWithTariffs = (items) =>
   });
 
 export const formatPrice = (price) =>
-  `${Number(price || 0).toLocaleString("ru-RU")} в‚Ѕ`;
+  `${Number(price || 0).toLocaleString("ru-RU")} ₽`;
 
 export const findMinTariffPrice = (service) => {
   const own = service.tariffs.map((tariff) => tariff.price);
@@ -259,3 +259,4 @@ export const useServices = () => {
     loadServices,
   };
 };
+

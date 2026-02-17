@@ -57,7 +57,7 @@ onMounted(() => {
       <div v-if="article.content_type === 'video' && article.video_url" class="single-article__video">
         <iframe
           :src="article.video_url"
-          title="Р’РёРґРµРѕ РІ СЃС‚Р°С‚СЊРµ"
+          title="Видео в статье"
           loading="lazy"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerpolicy="strict-origin-when-cross-origin"
@@ -69,7 +69,7 @@ onMounted(() => {
     </section>
 
     <section v-else class="single-article__not-found glass-card">
-      <h1>{{ error || "РњР°С‚РµСЂРёР°Р» РЅРµ РЅР°Р№РґРµРЅ" }}</h1>
+      <h1>{{ error || "Материал не найден" }}</h1>
       <router-link class="single-article__back" to="/articles">Назад</router-link>
     </section>
   </main>

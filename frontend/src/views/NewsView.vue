@@ -1,13 +1,33 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
 import NewsCard from "../components/NewsCard.vue";
-import { newsItems } from "../data/news";
+import { getNewsList } from "../api/news";
+
+const loading = ref(false);
+const newsItems = ref([]);
 
 const sortedNews = computed(() =>
-  [...newsItems].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  [...newsItems.value].sort((a, b) => new Date(b.published_date).getTime() - new Date(a.published_date).getTime())
 );
+
+const loadNews = async () => {
+  loading.value = true;
+
+  try {
+    newsItems.value = await getNewsList();
+  } catch (err) {
+    console.error("[news] failed to load", err);
+    newsItems.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadNews();
+});
 </script>
 
 <template>
@@ -22,7 +42,8 @@ const sortedNews = computed(() =>
     </section>
 
     <section class="news-page__grid">
-      <NewsCard v-for="item in sortedNews" :key="item.id" :item="item" />
+      <p v-if="loading">Загрузка...</p>
+      <NewsCard v-for="item in sortedNews" :key="item.slug" :item="item" />
     </section>
   </main>
 

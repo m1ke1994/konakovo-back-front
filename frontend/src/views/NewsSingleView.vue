@@ -1,21 +1,39 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
-import { getNewsById } from "../data/news";
+import { getNewsBySlug } from "../api/news";
 
 const route = useRoute();
 
-const newsItem = computed(() => getNewsById(route.params.id));
+const loading = ref(false);
+const newsItem = ref(null);
 
 const formattedDate = computed(() => {
-  if (!newsItem.value) return "";
-  return new Date(newsItem.value.date).toLocaleDateString("ru-RU", {
+  if (!newsItem.value?.published_date) return "";
+  return new Date(newsItem.value.published_date).toLocaleDateString("ru-RU", {
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
+});
+
+const loadNews = async () => {
+  loading.value = true;
+
+  try {
+    newsItem.value = await getNewsBySlug(route.params.slug);
+  } catch (err) {
+    console.error("[news] failed to load detail", err);
+    newsItem.value = null;
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadNews();
 });
 </script>
 
@@ -23,7 +41,11 @@ const formattedDate = computed(() => {
   <AppHeader />
 
   <main class="news-single">
-    <section v-if="newsItem" class="news-single__content">
+    <section v-if="loading" class="news-single__not-found glass-card">
+      <h1>Загрузка...</h1>
+    </section>
+
+    <section v-else-if="newsItem" class="news-single__content">
       <router-link class="news-single__back" to="/news">Назад к новостям</router-link>
       <p class="news-single__date">{{ formattedDate }}</p>
       <h1 class="news-single__title">{{ newsItem.title }}</h1>

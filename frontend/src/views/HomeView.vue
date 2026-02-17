@@ -10,7 +10,7 @@ import ReviewsSection from "../components/Profile/ReviewsSection.vue";
 import ArticleCard from "../components/ArticleCard.vue";
 import NewsCard from "../components/NewsCard.vue";
 import { getArticles } from "../api/articles";
-import { newsItems } from "../data/news";
+import { getNewsList } from "../api/news";
 
 const menuItems = [
   { label: "Обо мне", to: "/about" },
@@ -28,6 +28,9 @@ const loadingArticles = ref(false);
 const articleError = ref("");
 const materials = ref([]);
 
+const loadingNews = ref(false);
+const newsItems = ref([]);
+
 const latestMaterials = computed(() =>
   [...materials.value]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -35,8 +38,8 @@ const latestMaterials = computed(() =>
 );
 
 const latestNews = computed(() =>
-  [...newsItems]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  [...newsItems.value]
+    .sort((a, b) => new Date(b.published_date).getTime() - new Date(a.published_date).getTime())
     .slice(0, 4)
 );
 
@@ -55,8 +58,22 @@ const loadArticles = async () => {
   }
 };
 
+const loadNews = async () => {
+  loadingNews.value = true;
+
+  try {
+    newsItems.value = await getNewsList();
+  } catch (err) {
+    console.error("[news] failed to load", err);
+    newsItems.value = [];
+  } finally {
+    loadingNews.value = false;
+  }
+};
+
 onMounted(() => {
   loadArticles();
+  loadNews();
 });
 </script>
 
@@ -131,7 +148,8 @@ onMounted(() => {
               <h2 class="app-section__title news-home__title">Новости</h2>
             </div>
             <div class="news-home__grid">
-              <NewsCard v-for="item in latestNews" :key="item.id" :item="item" />
+              <p v-if="loadingNews">Загрузка...</p>
+              <NewsCard v-for="item in latestNews" :key="item.slug" :item="item" />
             </div>
             <div class="news-home__footer">
               <router-link class="news-home__link btn-secondary" to="/news">Все новости</router-link>

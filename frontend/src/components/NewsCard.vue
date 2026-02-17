@@ -9,7 +9,7 @@ const props = defineProps({
 });
 
 const formattedDate = computed(() =>
-  new Date(props.item.date).toLocaleDateString("ru-RU", {
+  new Date(props.item.published_date).toLocaleDateString("ru-RU", {
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -24,7 +24,7 @@ const formattedDate = computed(() =>
       <p class="news-card__date">{{ formattedDate }}</p>
       <h3 class="news-card__title">{{ item.title }}</h3>
       <p class="news-card__description">{{ item.description }}</p>
-      <router-link class="news-card__action btn-outline" :to="`/news/${item.id}`">Читать дальше</router-link>
+      <router-link class="news-card__action btn-outline" :to="`/news/${item.slug}`">Читать дальше</router-link>
     </div>
   </article>
 </template>
@@ -92,5 +92,3 @@ const formattedDate = computed(() =>
   }
 }
 </style>
-
-
