@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Article, HeroBlock, Review
+from .models import Article, HeroBlock, News, Review
 
 
 class HeroBlockSerializer(serializers.ModelSerializer):
@@ -50,3 +50,15 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "published_date",
             "created_at",
         )
+
+
+class NewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = News
+        fields = "__all__"
+
+
+class NewsListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = News
+        fields = ("id", "title", "slug", "description", "image", "published_date")

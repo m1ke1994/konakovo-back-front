@@ -1,7 +1,10 @@
+import json
+
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Article, HeroBlock, Review
+from .models import Article, HeroBlock, News, Review
 
 
 @admin.register(HeroBlock)
@@ -65,4 +68,53 @@ class ArticleAdmin(admin.ModelAdmin):
         ("Основное", {"fields": ("title", "slug", "content_type", "is_published", "published_date")}),
         ("Превью", {"fields": ("preview_image", "preview_description")}),
         ("Контент", {"fields": ("content", "video_url")}),
+    )
+
+
+class NewsAdminForm(forms.ModelForm):
+    content = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 12}),
+        help_text="Можно вставить JSON-массив или обычный текст абзацами (через пустую строку).",
+    )
+
+    class Meta:
+        model = News
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        value = self.initial.get("content")
+        if isinstance(value, list):
+            self.initial["content"] = "\n\n".join(str(item) for item in value if str(item).strip())
+
+    def clean_content(self):
+        raw = (self.cleaned_data.get("content") or "").strip()
+        if not raw:
+            return []
+
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        except json.JSONDecodeError:
+            pass
+
+        paragraphs = [part.strip() for part in raw.split("\n\n") if part.strip()]
+        if paragraphs:
+            return paragraphs
+
+        return [raw]
+
+
+@admin.register(News)
+class NewsAdmin(admin.ModelAdmin):
+    form = NewsAdminForm
+    list_display = ("title", "published_date", "is_published", "created_at")
+    list_filter = ("is_published", "published_date")
+    search_fields = ("title",)
+    prepopulated_fields = {"slug": ("title",)}
+    fieldsets = (
+        ("Основное", {"fields": ("title", "slug", "published_date", "is_published")}),
+        ("Превью", {"fields": ("description", "image")}),
+        ("Контент", {"fields": ("content",)}),
     )

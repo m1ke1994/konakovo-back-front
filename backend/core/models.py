@@ -90,3 +90,33 @@ class Article(models.Model):
                 index += 1
             self.slug = slug
         super().save(*args, **kwargs)
+
+
+class News(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Заголовок")
+    slug = models.SlugField(unique=True, blank=True, verbose_name="Slug")
+    description = models.TextField(verbose_name="Краткое описание")
+    image = models.ImageField(upload_to="news/", verbose_name="Изображение")
+    published_date = models.DateField(verbose_name="Дата публикации")
+    content = models.JSONField(verbose_name="Контент (абзацы)")
+    is_published = models.BooleanField(default=True, verbose_name="Опубликовано")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Новость"
+        verbose_name_plural = "Новости"
+        ordering = ["-published_date", "-created_at"]
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title) or "news"
+            slug = base_slug
+            index = 1
+            while News.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{index}"
+                index += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
