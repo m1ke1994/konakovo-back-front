@@ -264,7 +264,7 @@ const normalizeApiSchedule = (payload) => {
           description: String(event?.description || ""),
           price: Number(event?.price || 0),
           color: String(event?.color || "#6BA368"),
-          image: "",
+          image: String(event?.image || ""),
         })),
       };
     });

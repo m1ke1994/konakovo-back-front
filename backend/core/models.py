@@ -189,6 +189,12 @@ class ScheduleEvent(models.Model):
     title = models.CharField(max_length=255)
     category = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    image = models.ImageField(
+        upload_to="schedule_events/",
+        blank=True,
+        null=True,
+        verbose_name="Изображение",
+    )
     time_start = models.TimeField()
     time_end = models.TimeField()
     price = models.IntegerField(null=True, blank=True)

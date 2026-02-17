@@ -151,6 +151,7 @@ class ScheduleEventInline(admin.TabularInline):
         "time_end",
         "title",
         "category",
+        "image",
         "service",
         "price",
         "color",
@@ -174,3 +175,16 @@ class ScheduleEventAdmin(admin.ModelAdmin):
     list_filter = ("category", "day__is_published")
     search_fields = ("title", "category", "description")
     autocomplete_fields = ("day", "service")
+    fields = (
+        "day",
+        "time_start",
+        "time_end",
+        "title",
+        "category",
+        "description",
+        "image",
+        "service",
+        "price",
+        "color",
+        "order",
+    )

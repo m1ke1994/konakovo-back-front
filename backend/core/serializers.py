@@ -104,6 +104,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 class ScheduleEventSerializer(serializers.ModelSerializer):
     time_start = serializers.TimeField(format="%H:%M")
     time_end = serializers.TimeField(format="%H:%M")
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = ScheduleEvent
@@ -116,7 +117,14 @@ class ScheduleEventSerializer(serializers.ModelSerializer):
             "description",
             "price",
             "color",
+            "image",
         )
+
+    def get_image(self, obj):
+        request = self.context.get("request")
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
 
 class ScheduleDaySerializer(serializers.ModelSerializer):

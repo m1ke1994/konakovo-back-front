@@ -64,6 +64,11 @@ class ScheduleViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ScheduleDay.objects.filter(is_published=True).prefetch_related("events").order_by("date")
     serializer_class = ScheduleDaySerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
     def list(self, request, *args, **kwargs):
         days = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(days, many=True)
