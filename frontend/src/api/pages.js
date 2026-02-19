@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "");
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 axios.defaults.baseURL = API_ORIGIN;
 

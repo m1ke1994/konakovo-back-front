@@ -3,11 +3,27 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-@yayx*@k_sl-izpu@i^+vk0d8dj(u6gk-j@$#*dn20f*90jqcj"
+def get_bool(name: str, default: bool = False) -> bool:
+    return os.environ.get(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
 
-DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+def get_required(name: str) -> str:
+    value = os.environ.get(name)
+    if value is None or value.strip() == "":
+        raise RuntimeError(f"Missing required env var: {name}")
+    return value
+
+
+def get_list(name: str, default: str = "") -> list[str]:
+    raw = os.environ.get(name, default)
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+SECRET_KEY = get_required("SECRET_KEY")
+
+DEBUG = get_bool("DEBUG", default=False)
+
+ALLOWED_HOSTS = get_list("ALLOWED_HOSTS")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -57,11 +73,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB"),
-        "USER": os.environ.get("POSTGRES_USER"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": os.environ.get("POSTGRES_HOST", "db"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        "NAME": get_required("DATABASE_NAME"),
+        "USER": get_required("DATABASE_USER"),
+        "PASSWORD": get_required("DATABASE_PASSWORD"),
+        "HOST": get_required("DATABASE_HOST"),
+        "PORT": get_required("DATABASE_PORT"),
     }
 }
 
@@ -91,11 +107,14 @@ REST_FRAMEWORK = {
     "UNICODE_JSON": True,
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4001",
-]
+CORS_ALLOWED_ORIGINS = get_list("CORS_ALLOWED_ORIGINS")
 
 CORS_ALLOW_CREDENTIALS = True
+
+BASE_URL = os.environ.get("BASE_URL", "")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
+JWT_SECRET = os.environ.get("JWT_SECRET", "")
+API_KEY = os.environ.get("API_KEY", "")
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"

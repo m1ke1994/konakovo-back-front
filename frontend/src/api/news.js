@@ -1,4 +1,4 @@
-const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "")
 const NEWS_ENDPOINT = `${API_ORIGIN}/api/news/`
 
 const toAbsoluteUrl = (value) => {

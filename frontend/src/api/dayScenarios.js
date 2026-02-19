@@ -1,4 +1,4 @@
-const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "")
 const DAY_SCENARIOS_ENDPOINT = `${API_ORIGIN}/api/day-scenarios/`
 
 export async function createDayScenario(payload) {

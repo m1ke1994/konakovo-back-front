@@ -24,6 +24,9 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
 
-EXPOSE 4000
+ARG BACKEND_PORT
+ENV BACKEND_PORT=$BACKEND_PORT
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:4000"]
+EXPOSE ${BACKEND_PORT}
+
+CMD ["sh", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:${BACKEND_PORT}"]

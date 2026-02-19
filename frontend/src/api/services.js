@@ -1,4 +1,4 @@
-const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "")
 const SERVICES_ENDPOINT = `${API_ORIGIN}/api/services/`
 
 export async function getServices() {
