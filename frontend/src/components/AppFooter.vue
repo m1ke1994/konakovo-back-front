@@ -30,7 +30,14 @@
             </div>
             <div class="footer__contact-item">
               <span class="footer__label">Telegram</span>
-              <span>@bhakti_girl</span>
+              <a
+                :href="TELEGRAM_URL"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="telegram-link"
+              >
+                {{ TELEGRAM_USERNAME }}
+              </a>
             </div>
           </div>
         </div>
@@ -50,6 +57,8 @@
 
 <script setup>
 const year = new Date().getFullYear()
+const TELEGRAM_URL = "https://t.me/novoe_konakovo"
+const TELEGRAM_USERNAME = "@novoe_konakovo"
 
 const scrollToTop = () => {
   if (typeof window === 'undefined') return
@@ -193,6 +202,15 @@ const scrollToTop = () => {
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.telegram-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.telegram-link:hover {
+  text-decoration: underline;
 }
 
 .footer__bottom {

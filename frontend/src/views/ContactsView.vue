@@ -6,6 +6,8 @@ import PageTemplate from "../components/PageTemplate.vue";
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 const LEADS_ENDPOINT = `${API_ORIGIN}/api/leads/`;
+const TELEGRAM_URL = "https://t.me/novoe_konakovo";
+const TELEGRAM_USERNAME = "@novoe_konakovo";
 const submitError = ref("");
 const isSubmitting = ref(false);
 const success = ref(false);
@@ -169,7 +171,16 @@ onBeforeUnmount(() => {
               </span>
               <div>
                 <p class="contacts__label">Telegram</p>
-                <p class="contacts__value">@bhakti_girl</p>
+                <p class="contacts__value">
+                  <a
+                    :href="TELEGRAM_URL"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="telegram-link"
+                  >
+                    {{ TELEGRAM_USERNAME }}
+                  </a>
+                </p>
               </div>
             </div>
           </div>
@@ -299,6 +310,15 @@ onBeforeUnmount(() => {
   font-size: 14px;
   color: var(--text);
   line-height: 1.5;
+}
+
+.telegram-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.telegram-link:hover {
+  text-decoration: underline;
 }
 
 .contacts__card--map {
