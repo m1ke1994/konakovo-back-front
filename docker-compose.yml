@@ -30,14 +30,14 @@ services:
         sleep 1;
       done &&
       python manage.py collectstatic --noinput &&
-      gunicorn config.wsgi:application --bind 0.0.0.0:8000
+      gunicorn config.wsgi:application --bind 0.0.0.0:4000
       "
     volumes:
       - ./backend:/app
       - media_data:/app/media
       - static_data:/app/static
     ports:
-      - "8000:8000"
+      - "4000:4000"
     depends_on:
       db:
         condition: service_healthy
@@ -53,7 +53,7 @@ services:
     container_name: volga-frontend
     restart: always
     ports:
-      - "5173:80"
+      - "4001:80"
     depends_on:
       - backend
 

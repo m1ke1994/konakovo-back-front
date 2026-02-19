@@ -22,15 +22,15 @@
           <div class="footer__contacts">
             <div class="footer__contact-item">
               <span class="footer__label">Телефон</span>
-              <span>+7 (999) 000-00-00</span>
+              <span>+7 (985) 200-63-22</span>
             </div>
             <div class="footer__contact-item">
               <span class="footer__label">Email</span>
-              <span>hello@example.com</span>
+              <span>elizaveta-struchkova@yandex.ru</span>
             </div>
             <div class="footer__contact-item">
               <span class="footer__label">Telegram</span>
-              <span>@username</span>
+              <span>@bhakti_girl</span>
             </div>
           </div>
         </div>

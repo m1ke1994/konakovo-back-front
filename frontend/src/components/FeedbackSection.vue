@@ -84,6 +84,8 @@
           <button class="btn-primary" :disabled="isSubmitting" @click="handleConfirm">
             Согласовать
           </button>
+          <p v-if="success" class="form-success">Сохранено</p>
+          <p v-if="submitError">{{ submitError }}</p>
         </div>
       </aside>
     </div>
@@ -91,7 +93,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { createDayScenario } from "../api/dayScenarios";
 import { formatPrice, loadServices, useServices } from "../composables/useServices";
 
@@ -105,6 +107,16 @@ const date = ref("");
 const guests = ref("");
 const comment = ref("");
 const isSubmitting = ref(false);
+const success = ref(false);
+const submitError = ref("");
+const successTimerId = ref(null);
+
+const clearSuccessTimer = () => {
+  if (successTimerId.value) {
+    clearTimeout(successTimerId.value);
+    successTimerId.value = null;
+  }
+};
 
 onMounted(() => {
   loadServices();
@@ -146,6 +158,8 @@ const resetScenarioForm = () => {
 
 const handleConfirm = async () => {
   if (isSubmitting.value) return;
+  submitError.value = "";
+  success.value = false;
 
   const trimmedName = name.value.trim();
   const trimmedContact = contact.value.trim();
@@ -157,12 +171,12 @@ const handleConfirm = async () => {
   }));
 
   if (!trimmedName || !trimmedContact || !date.value || !Number.isFinite(guestsCount) || guestsCount < 1) {
-    window.alert("Заполните имя, контакт, дату и количество гостей.");
+    submitError.value = "Заполните имя, контакт, дату и количество гостей.";
     return;
   }
 
   if (!selectedItems.length) {
-    window.alert("Выберите хотя бы одну программу.");
+    submitError.value = "Выберите хотя бы одну программу.";
     return;
   }
 
@@ -179,14 +193,22 @@ const handleConfirm = async () => {
     });
 
     resetScenarioForm();
-    window.alert("Сценарий отправлен. Мы свяжемся с вами.");
+    success.value = true;
+    clearSuccessTimer();
+    successTimerId.value = setTimeout(() => {
+      success.value = false;
+      successTimerId.value = null;
+    }, 3000);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Не удалось отправить сценарий. Попробуйте снова.";
-    window.alert(message);
+    submitError.value = error instanceof Error ? error.message : "Не удалось отправить сценарий. Попробуйте снова.";
   } finally {
     isSubmitting.value = false;
   }
 };
+
+onBeforeUnmount(() => {
+  clearSuccessTimer();
+});
 </script>
 
 <style scoped>
@@ -307,6 +329,12 @@ const handleConfirm = async () => {
 .summary__item {
   font-size: 12px;
   color: var(--muted);
+}
+
+.form-success {
+  color: #2e7d32;
+  font-size: 14px;
+  margin-top: 10px;
 }
 
 @media (max-width: 980px) {

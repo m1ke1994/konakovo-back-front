@@ -1,8 +1,8 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
-from .models import DayScenario, Lead
-from .serializers import DayScenarioSerializer, LeadSerializer
+from .models import DayScenario, Lead, ServiceRequest
+from .serializers import DayScenarioSerializer, LeadSerializer, ServiceRequestSerializer
 
 
 class LeadCreateAPIView(generics.CreateAPIView):
@@ -15,5 +15,12 @@ class LeadCreateAPIView(generics.CreateAPIView):
 class DayScenarioCreateAPIView(generics.CreateAPIView):
     queryset = DayScenario.objects.all()
     serializer_class = DayScenarioSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+
+class ServiceRequestCreateAPIView(generics.CreateAPIView):
+    queryset = ServiceRequest.objects.all()
+    serializer_class = ServiceRequestSerializer
     permission_classes = [AllowAny]
     authentication_classes = []

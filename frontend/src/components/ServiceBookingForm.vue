@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref, watch } from "vue";
-import AppModal from "./ui/AppModal.vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { createServiceRequest } from "../api/serviceRequests";
 
 const props = defineProps({
   service: {
@@ -18,7 +18,10 @@ const emit = defineEmits(["update:selectedTariff"]);
 const name = ref("");
 const phone = ref("");
 const selectedTariffId = ref("");
-const isSuccessOpen = ref(false);
+const isSubmitting = ref(false);
+const isSaved = ref(false);
+const submitError = ref("");
+const successTimerId = ref(null);
 
 const serviceTitle = computed(() => String(props.service?.title || ""));
 const serviceDescription = computed(() => String(props.service?.description || ""));
@@ -65,7 +68,8 @@ watch(
     name.value = "";
     phone.value = "";
     selectedTariffId.value = "";
-    isSuccessOpen.value = false;
+    isSaved.value = false;
+    submitError.value = "";
     emit("update:selectedTariff", null);
   }
 );
@@ -81,25 +85,52 @@ watch(selectedTariffId, (value) => {
   emit("update:selectedTariff", tariff);
 });
 
-const handleSubmit = () => {
-  if (!canSubmit.value) return;
+const clearSuccessTimer = () => {
+  if (successTimerId.value) {
+    clearTimeout(successTimerId.value);
+    successTimerId.value = null;
+  }
+};
 
-  const tariff = selectedTariffResolved.value;
-  console.log({
-    service_id: props.service?.id ?? null,
-    service_title: props.service?.title ?? "",
-    tariff_id: tariff?.id ?? null,
-    tariff_title: tariff?.title ?? null,
-    name: name.value.trim(),
-    phone: phone.value.trim(),
-  });
-
-  isSuccessOpen.value = true;
+const resetForm = () => {
   name.value = "";
   phone.value = "";
   selectedTariffId.value = "";
   emit("update:selectedTariff", null);
 };
+
+const handleSubmit = async () => {
+  if (!canSubmit.value || isSubmitting.value) return;
+
+  submitError.value = "";
+  const tariff = selectedTariffResolved.value;
+
+  try {
+    isSubmitting.value = true;
+    await createServiceRequest({
+      name: name.value.trim(),
+      contact: phone.value.trim(),
+      service_slug: String(props.service?.slug || "").trim(),
+      message: tariff?.title ? `Выбран тариф: ${tariff.title}` : "",
+    });
+
+    resetForm();
+    isSaved.value = true;
+    clearSuccessTimer();
+    successTimerId.value = setTimeout(() => {
+      isSaved.value = false;
+      successTimerId.value = null;
+    }, 3000);
+  } catch (error) {
+    submitError.value = error instanceof Error ? error.message : "Не удалось отправить заявку. Попробуйте снова.";
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+onBeforeUnmount(() => {
+  clearSuccessTimer();
+});
 </script>
 
 <template>
@@ -166,15 +197,14 @@ const handleSubmit = () => {
         </select>
       </label>
 
-      <button class="btn-primary service-booking__submit" type="submit" :disabled="!canSubmit">
+      <button class="btn-primary service-booking__submit" type="submit" :disabled="!canSubmit || isSubmitting">
         Отправить
       </button>
+      <p v-if="isSaved" class="service-booking__success" style="color: #2e7d32;">Сохранено</p>
+      <p v-if="submitError" class="service-booking__success">{{ submitError }}</p>
     </form>
   </section>
 
-  <AppModal v-model="isSuccessOpen" title="Спасибо">
-    <p class="service-booking__success">Спасибо, заявка отправлена.</p>
-  </AppModal>
 </template>
 
 <style scoped>

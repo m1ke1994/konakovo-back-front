@@ -1,8 +1,8 @@
 const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "")
-const DAY_SCENARIOS_ENDPOINT = `${API_ORIGIN}/api/day-scenarios/`
+const SERVICE_REQUESTS_ENDPOINT = `${API_ORIGIN}/api/service-requests/`
 
-export async function createDayScenario(payload) {
-  const response = await fetch(DAY_SCENARIOS_ENDPOINT, {
+export async function createServiceRequest(payload) {
+  const response = await fetch(SERVICE_REQUESTS_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -12,7 +12,7 @@ export async function createDayScenario(payload) {
   })
 
   if (!response.ok) {
-    let message = "Не удалось отправить сценарий. Попробуйте снова."
+    let message = "Не удалось отправить заявку. Попробуйте снова."
     try {
       const errorData = await response.json()
       if (errorData && typeof errorData === "object") {
@@ -22,7 +22,7 @@ export async function createDayScenario(payload) {
         }
       }
     } catch (parseError) {
-      // Keep default message when error body is not JSON.
+      // Keep default message if backend did not return JSON.
     }
     throw new Error(message)
   }

@@ -1,13 +1,22 @@
 <script setup>
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 import AppHeader from "../components/AppHeader.vue";
 import AppFooter from "../components/AppFooter.vue";
 import PageTemplate from "../components/PageTemplate.vue";
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
+const API_ORIGIN = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(/\/$/, "");
 const LEADS_ENDPOINT = `${API_ORIGIN}/api/leads/`;
 const submitError = ref("");
 const isSubmitting = ref(false);
+const success = ref(false);
+const successTimerId = ref(null);
+
+const clearSuccessTimer = () => {
+  if (successTimerId.value) {
+    clearTimeout(successTimerId.value);
+    successTimerId.value = null;
+  }
+};
 
 const pageData = {
   title: "Контакты",
@@ -36,6 +45,7 @@ const handleSubmit = async (event) => {
   const form = event.target;
   form.classList.add("is-submitted");
   submitError.value = "";
+  success.value = false;
   if (!form.checkValidity() || isSubmitting.value) return;
 
   const payload = {
@@ -77,13 +87,22 @@ const handleSubmit = async (event) => {
     await response.json();
     form.reset();
     form.classList.remove("is-submitted");
-    window.alert("Спасибо! Ваша заявка отправлена.");
+    success.value = true;
+    clearSuccessTimer();
+    successTimerId.value = setTimeout(() => {
+      success.value = false;
+      successTimerId.value = null;
+    }, 3000);
   } catch (error) {
     submitError.value = error instanceof Error ? error.message : "Не удалось отправить заявку. Попробуйте снова.";
   } finally {
     isSubmitting.value = false;
   }
 };
+
+onBeforeUnmount(() => {
+  clearSuccessTimer();
+});
 </script>
 
 <template>
@@ -189,6 +208,7 @@ const handleSubmit = async (event) => {
         </label>
 
         <button class="contacts__submit btn-primary" type="submit" :disabled="isSubmitting">Отправить</button>
+        <p v-if="success" class="form-success">Отправлено</p>
         <p v-if="submitError">{{ submitError }}</p>
       </form>
     </div>
@@ -344,6 +364,12 @@ const handleSubmit = async (event) => {
 
 .contacts__submit {
   justify-self: flex-start;
+}
+
+.form-success {
+  color: #2e7d32;
+  font-size: 14px;
+  margin-top: 10px;
 }
 
 @media (max-width: 900px) {
